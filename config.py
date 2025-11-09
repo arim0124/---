@@ -14,3 +14,6 @@ COLD_TEMPERATURE = 18
 WET = 50
 #BAD_AIR = 나중에 측정해보고 결정
 HIGH_DUST = 1000
+PE_TIME = [
+    [10, 15], [15, 15]
+]

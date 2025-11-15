@@ -11,7 +11,7 @@ from datetime import datetime as d
 def main() : 
     while True : 
         #센서 입력
-        dust = sin.get_dust()
+        dust = w.get_dust()
         tem, hum, gas = sin.get_temhumgas()
         if tem is None : 
             continue

@@ -4,6 +4,8 @@
 import serial
 import time
 
+#각 기능별 함수 - 회로 연결시 버그 없었음
+#각 함수당 ser이 아두이노랑 연결하는 객체인데 이걸 메인에서 연결해서 전달하면됨 - 예제는 대충 얘네거 참고해서 하시고
 def open_window(ser):
     ser.write('WIN_ON\n'.encode('utf-8'))
 

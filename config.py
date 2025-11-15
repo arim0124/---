@@ -14,7 +14,8 @@ off_aircon() : 에어컨 끄기'''
 HOT_TEMPERATURE = 30
 COLD_TEMPERATURE = 18
 WET = 50
-BAD_AIR = 100 #측정 후 수정 예정
+BAD_AIR = 100 #측정 후 수정 예정 -KHAI수치 0 ~ 50: 좋음, 51 ~ 100: 보통, 101 ~ 250: 나쁨, 251 ~ 500: 매우 나쁨이라네요 알아서 마무리 하시길
+HIGH_DUST = 1000
 HIGH_DUST = 1000
 PE_TIME = [
     [10, 15], [15, 15]

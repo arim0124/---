@@ -12,6 +12,7 @@ def get_temhumgas(ser):
     
     values = line.split(',')
     if len(values) == 3:
+      print(values)
       temperature = float(values[0])
       humidity = float(values[1])
       gas = int(values[2])

@@ -6,15 +6,18 @@ from inout import serial_output as sou
 from utils import weather as w
 import time
 from datetime import datetime as d 
+import serial
 
-
-def main() : 
+def main(ser) : 
     while True : 
         #센서 입력
         dust = w.get_dust()
-        tem, hum, gas = sin.get_temhumgas()
-        if tem is None : 
+        temhumgas = sin.get_temhumgas(ser)
+        if temhumgas is None : 
             continue
+        tem = temhumgas[0]
+        hum = temhumgas[1]
+        gas = temhumgas[2]
 
         #무슨 동작할지 판단!
         now = d.now()
@@ -40,31 +43,28 @@ def main() :
                     else : 
                         state = [False, False, False, False, True] #아무것도 아니라 창문 닫음
 
-
         #자 행동하세요 라고 명령
         cac, hac, js, sp, wd = state
         if cac : 
-            sou.con_aircon()
+            sou.con_aircon(ser)
         elif hac : 
-            sou.hon_aircon()
+            sou.hon_aircon(ser)
         elif js : 
-            sou.js_aircon()
+            sou.js_aircon(ser)
         elif sp : 
-            sou.sp_aircon()
+            sou.sp_aircon(ser)
         else : 
-            sou.off_aircon()
-
+            sou.off_aircon(ser)
         if wd : 
-            sou.close_window()
+            sou.close_window(ser)
         else : 
-            sou.open_window()
-
+            sou.open_window(ser)
 
         #2초 주기로 ㄱㄱ
         time.sleep(2)
 
-
-
-
 if __name__ == "__main__" : 
-    main()
+    #연결 포트 COM3, 1초동안 데이터 없으면 종료
+    ser = serial.Serial('COM3', 9600, timeout = 1)
+    time.sleep(2)
+    main(ser)

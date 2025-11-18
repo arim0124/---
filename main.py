@@ -1,70 +1,69 @@
 '''메인 기능
 성아림 담당'''
-import config as c
 from inout import serial_input as sin
 from inout import serial_output as sou
 from utils import weather as w
+from utils import create_button,root
 import time
 from datetime import datetime as d 
 import serial
+import threading
+import queue
+
+cmd_queue = queue.Queue()
 
 def main(ser) : 
     while True : 
-        #센서 입력
-        dust = w.get_dust()
-        temhumgas = sin.get_temhumgas(ser)
-        if temhumgas is None : 
-            continue
-        tem = temhumgas[0]
-        hum = temhumgas[1]
-        gas = temhumgas[2]
+        try:
+            cmd = cmd_queue.get_nowait()
+            time.sleep(60)
+        except queue.Empty:
+            #센서 입력
+            dust = w.get_dust()
+            temhumgas = sin.get_temhumgas(ser)
+            if temhumgas is None : 
+                continue
+            tem = temhumgas[0]
+            hum = temhumgas[1]
+            gas = temhumgas[2]
 
-        #무슨 동작할지 판단!
-        now = d.now()
-        hm = [now.hour, now.minute]
-        if hm in c.PE_TIME : #체육시간 마치기 15분 전에 에어컨 튼다
-            state = [True, False, False, False, True] #냉방, 난방, 제습, 송풍, 창문 닫기 순서
-        else : #체육시간 아님
-            if tem>c.HOT_TEMPERATURE : #더우면 에어컨
-                state = [True, False, False, False, True]
-            elif tem<=c.COLD_TEMPERATURE : #추우면 히터
-                state = [False, True, False, False, True]
-            else : #안덥고 안추움
-                if dust>c.HIGH_DUST : #미세먼지!!
-                    if gas>c.BAD_AIR : #근데 실내공기질 별로라 송풍
-                        state = [False, False, False, True, True]
-                    elif hum>c.WET : #근데 습해서 제습
-                        state = [False, False, True, False, True]
-                    else : #그냥 미세먼지 나쁘기만 함
-                        state = [False, False, False, False, True]
-                else : #미세먼지 없으요
-                    if gas>c.BAD_AIR or hum>c.WET: #실내 공기 탁하거나 습해서 창문 열기
-                        state = [False, False, False, False, False]
-                    else : 
-                        state = [False, False, False, False, True] #아무것도 아니라 창문 닫음
+            #무슨 동작할지 판단!
+            now = d.now()
+            hm = [now.hour, now.minute]
+            sou.act([hm,tem,hum,gas,dust])
 
-        #자 행동하세요 라고 명령
-        cac, hac, js, sp, wd = state
-        if cac : 
-            sou.con_aircon(ser)
-        elif hac : 
-            sou.hon_aircon(ser)
-        elif js : 
-            sou.js_aircon(ser)
-        elif sp : 
-            sou.sp_aircon(ser)
-        else : 
-            sou.off_aircon(ser)
-        if wd : 
-            sou.close_window(ser)
-        else : 
-            sou.open_window(ser)
+            #2초 주기로 ㄱㄱ
+            time.sleep(2)
 
-        #2초 주기로 ㄱㄱ
-        time.sleep(2)
+ser = serial.Serial('COM3', 9600, timeout = 1)
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
 
-if __name__ == "__main__" : 
-    #연결 포트 COM3, 1초동안 데이터 없으면 종료
-    ser = serial.Serial('COM3', 9600, timeout = 1)
-    time.sleep(2)
-    main(ser)
+create_button(50, 50, screen_width//2 - 25, 150, "창문 열기", lambda: sou.direct_act(ser,cmd_queue,'WIN_ON\n'))
+create_button(screen_width//2 + 25, 50, screen_width - 50, 150, "창문 닫기", lambda: sou.direct_act(ser,cmd_queue,'WIN_OFF\n'))
+
+x1_right = screen_width*2//3
+y1_right = 200
+x2_right = screen_width - 50
+y2_right = screen_height - 50
+create_button(x1_right, y1_right, x2_right, y2_right, "에어컨 끄기", lambda: sou.direct_act(ser,cmd_queue,'OFF\n'))
+
+left_w = screen_width*2//3 - 60
+left_h = y2_right - y1_right
+btn_w = (left_w - 30)//2
+btn_h = (left_h - 30)//2
+ln = [['냉방','난방'],['제습','송풍']]
+lc = [['COOL\n','HEAT\n'],['DRY\n','FAN\n']]
+for i in range(2):
+    for j in range(2):
+        x1 = 50 + j*(btn_w + 10)
+        y1 = y1_right + i*(btn_h + 10)
+        x2 = x1 + btn_w
+        y2 = y1 + btn_h
+        create_button(x1, y1, x2, y2, ln[i][j], lambda i=i, j=j : sou.direct_act(ser,cmd_queue,lc[i][j]) )
+time.sleep(2)
+    
+thread = threading.Thread(target=main, daemon=True)
+thread.start()
+    
+root.mainloop()

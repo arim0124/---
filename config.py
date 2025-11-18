@@ -19,3 +19,21 @@ HIGH_DUST = 400
 PE_TIME = [
     [10, 15], [15, 15]
 ]
+
+def whatcommand(time,tem,hum,gas,dust):
+    if dust <= HIGH_DUST and (hum > WET or gas > BAD_AIR):
+        command_1 = 'WIN_ON'
+    else:
+        command_1 = 'WIN_OFF'
+    if time in PE_TIME or tem > HOT_TEMPERATURE:
+        command_2 = 'COOL'
+    elif tem < COLD_TEMPERATURE:
+        command_2 = 'HEAT'
+    elif dust > HIGH_DUST and hum > WET:
+        command_2 = 'DRY'
+    elif dust > HIGH_DUST and gas > BAD_AIR:
+        command_2 = 'FAN'
+    else:
+        command_2 = 'OFF'
+    
+    return command_1,command_2

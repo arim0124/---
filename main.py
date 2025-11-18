@@ -19,7 +19,7 @@ def main(ser) :
             time.sleep(60)
         except queue.Empty:
             #센서 입력
-            dust = w.get_dust()
+            dust = int(w.get_dust())
             temhumgas = sin.get_temhumgas(ser)
             if temhumgas is None : 
                 continue
@@ -30,7 +30,8 @@ def main(ser) :
             #무슨 동작할지 판단!
             now = d.now()
             hm = [now.hour, now.minute]
-            sou.act([hm,tem,hum,gas,dust])
+            print([hm,tem,hum,gas,dust])
+            sou.act(ser,[hm,tem,hum,gas,dust])
 
             #2초 주기로 ㄱㄱ
             time.sleep(2)
@@ -63,7 +64,7 @@ for i in range(2):
         create_button(x1, y1, x2, y2, ln[i][j], lambda i=i, j=j : sou.direct_act(ser,cmd_queue,lc[i][j]) )
 time.sleep(2)
     
-thread = threading.Thread(target=main, daemon=True)
+thread = threading.Thread(target=main,args=(ser,),daemon=True)
 thread.start()
     
 root.mainloop()
